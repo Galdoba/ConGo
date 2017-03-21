@@ -7,13 +7,14 @@ import "time"
 
 var buf chan rune
 var congoInitiated bool
-// Keyboard - 
+
+// Keyboard -
 type Keyboard struct {
 	initiated bool
-	working bool
-
+	working   bool
 }
-// Init - 
+
+// Init -
 func Init() error {
 	err := termbox.Init()
 	if err != nil {
@@ -24,24 +25,27 @@ func Init() error {
 	go iLoop()
 	return err
 }
+
 //Close -
 func Close() {
-	
+
 	time.Sleep(1)
 	termbox.Close()
 }
+
 //CreateKeyboard -
 func CreateKeyboard() *Keyboard {
 	if congoInitiated == false {
 		fmt.Println("Congo is not initiated...")
 		os.Exit(3)
 	}
-	
- kbd := new(Keyboard)
- kbd.initiated = true
- return kbd
+
+	kbd := new(Keyboard)
+	kbd.initiated = true
+	return kbd
 }
-// StartKeyboard - 
+
+// StartKeyboard -
 func (kbd *Keyboard) StartKeyboard() {
 	if kbd.initiated == false {
 		fmt.Println("ERROR! Keyboard is not initiated...  see StartKeyboard()")
@@ -49,7 +53,8 @@ func (kbd *Keyboard) StartKeyboard() {
 	}
 	kbd.working = true
 }
-// StopKeyboard - 
+
+// StopKeyboard -
 func (kbd *Keyboard) StopKeyboard() {
 	if kbd.working == false {
 		fmt.Println("ERROR! Keyboard already stopped...  see StopKeyboard()")
@@ -57,24 +62,22 @@ func (kbd *Keyboard) StopKeyboard() {
 	}
 	kbd.working = false
 }
-//KeyboardReady - 
-func (kbd *Keyboard) KeyboardReady() bool{
+
+//KeyboardReady -
+func (kbd *Keyboard) KeyboardReady() bool {
 	if kbd.initiated == true {
 		if kbd.working == true {
 			return true
-		} else {
-			fmt.Println("\nKeyboard not working...")
-			os.Exit(1)
+		} else if kbd.working == false {
+			panic("\nKeyboard not working...")
 		}
 	} else {
-		fmt.Println("\nKeyboard not initiated...")
-		os.Exit(1)
+		panic("\nKeyboard not initiated...")
 	}
 	return false
 }
 
 func runeTranslator() rune {
-
 	var key rune
 	ev := termbox.PollEvent()
 	switch ev.Type {
@@ -86,15 +89,16 @@ func runeTranslator() rune {
 	}
 	return key
 }
-// ReadKey - 
+
+// ReadKey -
 func (*Keyboard) ReadKey() rune {
 	return <-buf
 }
-// KeyPressed - 
+
+// KeyPressed -
 func (kbd *Keyboard) KeyPressed() bool {
 	if kbd.working == false {
-		fmt.Println("\n ERROR!! Keyboard not working...   see 'KeyPressed()'")
-		//os.Exit(1)
+		panic("Keyboard not working...   see 'KeyPressed()'")
 	}
 	return len(buf) > 0
 }
