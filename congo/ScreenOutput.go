@@ -7,6 +7,10 @@ import "github.com/nsf/termbox-go"
 var cursorX int
 var cursorY int
 
+func GetSize() (int, int) {
+	return termbox.Size()
+}
+
 //FillRect -
 func FillRect(x, y, w, h int, bckground rune, fgCol, bgCol int) {
 	for i := 0; i < w; i++ {
@@ -29,78 +33,74 @@ func PrintText(x, y int, input string, fgCol, bgCol int) {
 	}
 }
 
-func cutInput(sl []rune, w, offSet int) []rune {
-	if len(sl) > w {
-		end := w // + offSet
-		//start := end - w
-
-		sl = sl[0:end]
+func trim(sl []rune, w, align, offSet int) ([]rune, int, bool, bool) {
+	start := 0
+	end := 0
+	trimR := false
+	trimL := false
+	switch align {
+	case 0:
+		offSet = 0
+		if len(sl) > w {
+			trimR = true
+			end = len(sl) - w
+			if end < 0 {
+				end = w
+			}
+			sl = sl[start : w-1]
+		}
+	case 1:
+		offSet = (w - len(sl))
+		end = len(sl)
+		if len(sl) > w {
+			start = len(sl) - w
+			offSet = 0
+			trimL = true
+		}
+		sl = sl[start:end]
+	case 2:
+		offSet = ((w - len(sl)) / 2)
+		if offSet < 0 {
+			offSet = 0
+		}
+		if len(sl) > w {
+			start = ((len(sl) - w) / 2)
+			end = start + w
+			sl = sl[start:end]
+			trimL = true
+			trimR = true
+		}
+	default:
+		align = 0
+		offSet = 0
+		if len(sl) > w {
+			trimR = true
+			end = len(sl) - w
+			if end < 0 {
+				end = w
+			}
+			sl = sl[start : w-1]
+		}
 	}
-	return sl
+	return sl, offSet, trimR, trimL
 }
 
 //Draw -
 func Draw(x, y, w int, align int, input string, fgCol, bgCol int) {
-	//sl := []rune(input)
-	/*offSet := 0
-	switch align {
-	default:
-		offSet = 0
-	case 0:
-		offSet = 0
-	case 1:
-		offSet = w - len(input) - 1
-	case 2:
-		offSet = ((w - len(input) - 1) / 2)
-	}
-	x = x + offSet
-	sl = cutInput(sl, w, offSet)*/
-	//input = string(sl)
-
-	//PrintText(x, y, input, fgCol, bgCol)
-
-	//trimLeft := false
-	//trimRight := false
 	offSet := 0
-	switch align {
-	default:
-		offSet = 0
-	case 0:
-		offSet = 0
-	case 1:
-		offSet = w - len(input)
-	case 2:
-		offSet = ((w - len(input) - 1) / 2)
-	}
-	x = x + offSet
+	trimR := false
+	trimL := false
 	sl := []rune(input)
-	sl = cutInput(sl, w, offSet)
+	sl, offSet, trimR, trimL = trim(sl, w, align, offSet)
+	x = x + offSet
 	input = string(sl)
-
-	if x < offSet {
-		//trimLeft = true
-	}
-	if x+len(input) > w {
-		//trimRight = true
-	}
-	/*if x >= offSet && x+len(input) <= w {
-		PrintText(x, y, input, fgCol, bgCol)
-	}*/
 	PrintText(x, y, input, fgCol, bgCol)
-	/*if trimLeft == true {
-		sl := []rune(input)
-		input = string(sl)
-		sl = append(sl[len(sl)-leftBound:], sl[:len(sl)-w+leftBound]...)
-		PrintText(x, y, input, fgCol, bgCol)
-		PrintText(leftBound, y, "…", fgCol, bgCol)
+	if trimR == true {
+		PrintText(x+w-1, y, "…", fgCol, bgCol)
 	}
-	if trimRight == true {
-
-		sl = append(sl[:0], sl[:w]...)
-		input = string(sl)
-		PrintText(x, y, input, fgCol, bgCol)
-		PrintText(offSet, y, "…", fgCol, bgCol)
-	}*/
+	if trimL == true {
+		PrintText(x, y, "…", fgCol, bgCol)
+	}
 }
 
 //ClearScreen -

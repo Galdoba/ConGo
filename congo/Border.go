@@ -12,6 +12,7 @@ type BorderStyle struct {
 	isCreated   bool
 }
 
+//InitBorders - 
 func InitBorders() {
 	AddBorderStyle("Double Line", "═╗║╝╚╔")
 	AddBorderStyle("Single Line", "─┐│┘└┌")

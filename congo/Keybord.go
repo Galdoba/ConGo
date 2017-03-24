@@ -5,7 +5,7 @@ import "fmt"
 import "os"
 import "time"
 
-var buf chan rune
+var buf chan IEvent
 var congoInitiated bool
 
 // Keyboard -
@@ -21,7 +21,7 @@ func Init() error {
 		return err
 	}
 	congoInitiated = true
-	buf = make(chan rune, 16)
+	buf = make(chan IEvent, 16)
 	go iLoop()
 	return err
 }
@@ -77,7 +77,7 @@ func (kbd *Keyboard) KeyboardReady() bool {
 	return false
 }
 
-func runeTranslator() rune {
+/*func runeTranslator() rune {
 	var key rune
 	ev := termbox.PollEvent()
 	switch ev.Type {
@@ -88,10 +88,10 @@ func runeTranslator() rune {
 		}
 	}
 	return key
-}
+}*/
 
-// ReadKey -
-func (*Keyboard) ReadKey() rune {
+// ReadEvent -
+func (*Keyboard) ReadEvent() IEvent {
 	return <-buf
 }
 
@@ -105,6 +105,19 @@ func (kbd *Keyboard) KeyPressed() bool {
 
 func iLoop() {
 	for {
-		buf <- runeTranslator()
+		ev := termbox.PollEvent()
+		switch ev.Type {
+		case termbox.EventKey:
+			event := &KeyboardEvent{}
+			event.key = int(ev.Key)
+			event.ch = ev.Ch
+			buf <- event
+		case termbox.EventResize:
+			event := &ResizeEvent{}
+			event.width = ev.Width
+			event.height = ev.Height
+			buf <- event
+		}
+
 	}
 }
