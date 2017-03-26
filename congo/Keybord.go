@@ -117,6 +117,12 @@ func iLoop() {
 			event.width = ev.Width
 			event.height = ev.Height
 			buf <- event
+		case termbox.EventMouse:
+			event := &MouseEvent{}
+			event.mouseX = ev.MouseX
+			event.mouseY = ev.MouseY
+			event.mouseButton = int(ev.Key)
+			buf <- event
 		}
 
 	}
