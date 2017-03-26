@@ -56,11 +56,10 @@ func handleEvent(ev congo.IEvent) {
 	counter++
 	if ev.GetRune() > 31 {
 		temp = string(ev.GetRune())
-		key = ev.GetRune()
-		
+		//key = ev.GetRune()
 		total = total + temp
 	}
-	if ev.GetKey() == 32 {
+	if ev.GetKey() == 32 { //костыль для пробела
 		temp = " " 
 		total = total + temp
 	}
@@ -69,6 +68,7 @@ func handleEvent(ev congo.IEvent) {
 			total = total[:len(total)-1]	
 		}
 	}
+	
 	if ev.GetRune() == '4' {
 		if fillColorBg == 0 {
 			fillColorBg = 2
