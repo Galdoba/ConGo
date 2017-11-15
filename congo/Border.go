@@ -2,45 +2,78 @@ package congo
 
 import "strings"
 
-//StylePool -
-var StylePool []BorderStyle
+//BorderMap -
+var BorderMap TBorderMap
 
-//BorderStyle -
-type BorderStyle struct {
-	name        string
+//DefaultBorder -
+var DefaultBorder TBorder
+
+//TBorderMap -
+type TBorderMap struct {
+	Border map[string]TBorder
+}
+
+//TBorder -
+type TBorder struct {
+	borderName  string
 	borderCells []string
 	isCreated   bool
 }
 
-//InitBorders - 
-func InitBorders() {
-	AddBorderStyle("Double Line", "═╗║╝╚╔")
-	AddBorderStyle("Single Line", "─┐│┘└┌")
-	AddBorderStyle("Block", "█████")
-	AddBorderStyle("EX", "XXXXXX")
-	AddBorderStyle("Default", "-+|+++")
+//GetTBorderName -
+func GetTBorderName() string {
+	return DefaultBorder.borderName
 }
 
-//AddBorderStyle -
-func AddBorderStyle(name, borderRunes string) *[]BorderStyle {
-	var style BorderStyle
-	style.name = name
-	style.borderCells = make([]string, 6)
-	style.SetBorderCells(borderRunes)
+//SetTBorder -
+func SetTBorder(borderName string) {
+
+	if bord, ok := BorderMap.Border[borderName]; ok {
+		DefaultBorder = bord
+	} else {
+		DefaultBorder = BorderMap.Border["Default"]
+	}
+}
+
+//AddBorder -
+func AddBorder(name, borderRunes string) *TBorderMap {
+	var style TBorder
+	var borderCells []string
+	borderCells = make([]string, 6)
 	style.isCreated = true
-	StylePool = append(StylePool, style)
-	return &StylePool
+	style.borderName = name
+	style.borderCells = strings.Split(borderRunes, "")
+	for i := range borderCells {
+		borderCells[i] = string(borderRunes[i])
+	}
+	BorderMap.Border[name] = style
+
+	return &BorderMap
+}
+
+//InitBorders -
+func InitBorders() {
+	BorderMap = TBorderMap{}
+	BorderMap.Border = map[string]TBorder{} //Инициализируем МАР внутри типа
+
+	AddBorder("Double Line", "═╗║╝╚╔")
+	AddBorder("Single Line", "─┐│┘└┌")
+	AddBorder("Block", "██████")
+	AddBorder("EX", "XXXXXX")
+	AddBorder("Default", "-+|+++")
+	AddBorder("Test", "123456")
+	AddBorder("None", "      ")
+	DefaultBorder = BorderMap.Border["Default"]
 }
 
 func pickStyle(name string) []string {
 	var borderRune []string
 	styleFound := false
-	for i := range StylePool {
-		if name == StylePool[i].name {
-			borderRune = StylePool[i].GetBorderCells()
-			styleFound = true
-		}
+	if border, ok := BorderMap.Border[name]; ok {
+		styleFound = true
+		borderRune = border.borderCells
 	}
+
 	if styleFound == false {
 		panic("Style <" + name + "> not found in  'pickStyle()' ")
 	}
@@ -48,41 +81,35 @@ func pickStyle(name string) []string {
 }
 
 //DrawBorder -
-func DrawBorder(x, y, w, h int, name string, fgCol, bgCol int) { //прийти к (Координаты,размер,тип рамки, цвета)
+func DrawBorder(x, y, w, h int, name string) { //прийти к (Координаты,размер,тип рамки, цвета)
 	borderRune := pickStyle(name)
 	for i := 1; i < w-1; i++ {
-		PrintText(x+i, y, borderRune[0], fgCol, bgCol)
-		PrintText(x+i, y+h-1, borderRune[0], fgCol, bgCol)
+		PrintText(x+i, y, borderRune[0])
+		PrintText(x+i, y+h-1, borderRune[0])
 	}
 	for i := 1; i < h-1; i++ {
-		PrintText(x, y+i, borderRune[2], fgCol, bgCol)
-		PrintText(x+w-1, y+i, borderRune[2], fgCol, bgCol)
+		PrintText(x, y+i, borderRune[2])
+		PrintText(x+w-1, y+i, borderRune[2])
 	}
-	PrintText(x, y, borderRune[5], fgCol, bgCol)
-	PrintText(x+w-1, y, borderRune[1], fgCol, bgCol)
-	PrintText(x+w-1, y+h-1, borderRune[3], fgCol, bgCol)
-	PrintText(x, y+h-1, borderRune[4], fgCol, bgCol)
+	PrintText(x, y, borderRune[5])
+	PrintText(x+w-1, y, borderRune[1])
+	PrintText(x+w-1, y+h-1, borderRune[3])
+	PrintText(x, y+h-1, borderRune[4])
 }
 
 //SetBorderCells -
-func (style *BorderStyle) SetBorderCells(input string) {
+func (style *TBorder) SetBorderCells(input string) {
 	borderRunes := strings.Split(input, "")
 	for i := 0; i < len(borderRunes); i++ {
 		style.borderCells[i] = borderRunes[i]
 	}
 }
 
-//SetStyleName -
-func (style *BorderStyle) SetStyleName(input string) {
-	style.name = input
-}
-
-//GetStyleName -
-func (style *BorderStyle) GetStyleName() string {
-	return style.name
-}
-
-//GetBorderCells -
-func (style *BorderStyle) GetBorderCells() []string {
-	return style.borderCells
+//GetNames -
+func (style *TBorderMap) GetNames() []string {
+	names := make([]string, 0, len(style.Border))
+	for n := range style.Border {
+		names = append(names, n)
+	}
+	return names
 }

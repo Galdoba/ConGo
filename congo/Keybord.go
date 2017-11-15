@@ -7,6 +7,7 @@ import "time"
 
 var buf chan IEvent
 var congoInitiated bool
+var keyboard *Keyboard
 
 // Keyboard -
 type Keyboard struct {
@@ -39,10 +40,18 @@ func CreateKeyboard() *Keyboard {
 		fmt.Println("Congo is not initiated...")
 		os.Exit(3)
 	}
+	if keyboard != nil {
+		fmt.Println("Keyboard already initiated...")
+		os.Exit(3)
+	}
 
-	kbd := new(Keyboard)
-	kbd.initiated = true
-	return kbd
+	keyboard = new(Keyboard)
+	keyboard.initiated = true
+	return keyboard
+}
+
+func GetKeyboard() *Keyboard {
+	return keyboard
 }
 
 // StartKeyboard -
@@ -109,16 +118,19 @@ func iLoop() {
 		switch ev.Type {
 		case termbox.EventKey:
 			event := &KeyboardEvent{}
+			event.eventTime = time.Now()
 			event.key = int(ev.Key)
 			event.ch = ev.Ch
 			buf <- event
 		case termbox.EventResize:
 			event := &ResizeEvent{}
+			event.eventTime = time.Now()
 			event.width = ev.Width
 			event.height = ev.Height
 			buf <- event
 		case termbox.EventMouse:
 			event := &MouseEvent{}
+			event.eventTime = time.Now()
 			event.mouseX = ev.MouseX
 			event.mouseY = ev.MouseY
 			event.mouseButton = int(ev.Key)
