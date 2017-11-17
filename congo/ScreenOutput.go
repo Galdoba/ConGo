@@ -12,13 +12,26 @@ var fgCol TColor
 var bgCol TColor
 var boundX int
 var boundY int
+var postUpdate bool
 
-//InitOutput - 
+//InitOutput -
 func InitOutput() {
 	SetFgColor(ColorDefault)
 	SetBgColor(ColorDefault)
 	//SetBounds(termbox.Size())
 	ResetBounds()
+}
+
+func IsChanged() bool {
+	return postUpdate
+}
+
+func PostUpdate() {
+	postUpdate = true
+}
+
+func ResetUpdate() {
+	postUpdate = false
 }
 
 //GetSize -
@@ -33,7 +46,7 @@ func FillRect(x, y, w, h int, bckground rune, fgCol, bgCol TColor) {
 			termbox.SetCell(x+i, y+j, bckground, termbox.Attribute(fgCol.color), termbox.Attribute(bgCol.color))
 		}
 	}
-
+	PostUpdate()
 }
 
 //PrintText -
@@ -48,46 +61,47 @@ func PrintText(x, y int, input string) {
 	tbBgCol = int32(GetFgColor().color)*/
 	for i := range rInput {
 		if x < maxX {
-		curentRune = rInput[i]
-		termbox.SetCell(x, y, curentRune, termbox.Attribute(fgCol.color), termbox.Attribute(bgCol.color))
-		x++
+			curentRune = rInput[i]
+			termbox.SetCell(x, y, curentRune, termbox.Attribute(fgCol.color), termbox.Attribute(bgCol.color))
+			x++
 		}
 		//ResetBounds()
 	}
+	PostUpdate()
 }
 
-//ResetBounds - 
+//ResetBounds -
 func ResetBounds() {
 	boundX, boundY = termbox.Size()
 }
 
-//GetBounds - 
+//GetBounds -
 func GetBounds() (int, int) {
 	maxX, maxY := boundX, boundY
 	return maxX, maxY
 }
 
-//SetBounds - 
+//SetBounds -
 func SetBounds(maxX, maxY int) {
 	boundX, boundY = maxX, maxY
 }
 
-//SetFgColor - 
+//SetFgColor -
 func SetFgColor(col TColor) {
 	fgCol = col
 }
 
-//SetBgColor - 
+//SetBgColor -
 func SetBgColor(col TColor) {
 	bgCol = col
 }
 
-//GetFgColor - 
+//GetFgColor -
 func GetFgColor() TColor {
 	return fgCol
 }
 
-//GetBgColor - 
+//GetBgColor -
 func GetBgColor() TColor {
 	return bgCol
 }
@@ -160,7 +174,7 @@ func Draw(x, y, w int, align string, input string) {
 	trimR := false
 	trimL := false
 	sl := []rune(input)
-	_ , maxY := GetBounds()
+	_, maxY := GetBounds()
 
 	////////////////модуль переноса строки - возможно перенести в отдельную функцию
 	if align == "LBLeft" {
@@ -215,7 +229,7 @@ func ShowCursor() {
 	termbox.SetCursor(cursorX, cursorY)
 }
 
-//SplitSubN - 
+//SplitSubN -
 func SplitSubN(s string, n int) []string {
 	sub := ""
 	subs := []string{}
