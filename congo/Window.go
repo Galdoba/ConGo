@@ -4,6 +4,7 @@ package congo
 import (
 	"encoding/hex"
 	"strconv"
+	"strings"
 )
 
 //WindowsMap -
@@ -17,7 +18,7 @@ type TWindowsMap struct {
 
 type fmtedRows struct {
 	align string
-	text  string
+	text  []string
 	color TColor
 }
 
@@ -39,8 +40,8 @@ type TWindow struct {
 	autoScroll    bool
 	scrollIndex   int
 	isActive      bool
-	outputRange   int
 	containedText string
+	storedText    string
 	storedRows    int
 	//cursor ???
 }
@@ -52,20 +53,22 @@ type IWindow interface {
 	WDraw()
 	SetBorderVisibility(bool) //Debug only
 	SetAutoScroll(bool)
-	SetOutputRange(int)
 	SetSize(int, int)
 	SetPosition(int, int)
 	GetScrollIndex() int
 	SetScrollIndex(int)
 	GetStoredRows() int
 	GetTitle() string
-	WPrint(string, TColor)
-	WPrintLn(string, TColor)
+	WPrint(...interface{})
+	WPrintLn(...interface{})
+	WGetContent() string
+	WSetContent(string)
 	WRead() string
 	WClear()
 	GetID() int
 	GetPrintableHeight() int
 	GetPrintableWidth() int
+	//WOutPut()
 	//DrawScrollBar()
 
 }
@@ -84,141 +87,48 @@ func (w *TWindow) DrawScrollBar() {
 	pointer := w.scrollIndex / delta
 	//FillRect(w.posX+w.width-w.checkBorderVisibility(), w.posY+w.checkBorderVisibility(), 1, w.height-2*w.checkBorderVisibility(), 'X', TColor(ColorYellow), TColor(ColorDarkGray))
 	PrintText(w.posX+w.width-w.checkBorderVisibility(), w.posY+w.checkBorderVisibility()+pointer, "X")
-	PrintText(1, 5, strconv.Itoa(w.scrollIndex))
+	//PrintText(1, 5, strconv.Itoa(w.scrollIndex))
 
 }
 
 //WPrint - Кодирует входящий стринг в HEX и добавляет его к (w.containedText) не создает новую строку
-func (w *TWindow) WPrint(text string, col TColor) {
-	var color string
-	plainBytes := hex.EncodeToString([]byte(text))
-	align := hex.EncodeToString([]byte(string('\x10')))
-	//endLine := hex.EncodeToString([]byte(string('\x0c')))
-	switch col {
-	case ColorGreen:
-		color = hex.EncodeToString([]byte(string('\x01')))
-	case ColorRed:
-		color = hex.EncodeToString([]byte(string('\x02')))
-	case ColorYellow:
-		color = hex.EncodeToString([]byte(string('\x03')))
-	default:
-		color = hex.EncodeToString([]byte(string('\x09')))
-	}
-
-	w.containedText += align + color + plainBytes// + endLine
-	//	w.containedText = strings.TrimRight(w.containedText, "0d")
-
-}
-
-//WPrintLn - Кодирует входящий стринг в HEX и добавляет его к (w.containedText)
-func (w *TWindow) WPrintLn(text string, col TColor) {
-	var color string
-	plainBytes := hex.EncodeToString([]byte(text))
-	align := hex.EncodeToString([]byte(string('\x10')))
-	endLine := hex.EncodeToString([]byte(string('\x0d')))
-	switch col {
-	case ColorGreen:
-		color = hex.EncodeToString([]byte(string('\x01')))
-	case ColorRed:
-		color = hex.EncodeToString([]byte(string('\x02')))
-	case ColorYellow:
-		color = hex.EncodeToString([]byte(string('\x03')))
-	default:
-		color = hex.EncodeToString([]byte(string('\x09')))
-	}
-	w.containedText += align + color + plainBytes + endLine
-}
-
-//WRead -
-func (w *TWindow) WRead() string {
-	//decodedRow, _ := hex.DecodeString(row[topRow+i].text)
-	text, _ := hex.DecodeString(w.containedText)
-	return string(text)
-}
-
-//WClear - Сносит из HEX в (w.containedText)
-func (w *TWindow) WClear() {
-	w.containedText = ""
-}
-
-func (w *TWindow) cutter(width int) []fmtedRows {
-	//	PrintText(2, 6, w.containedText)
-	char := SplitSubN(w.containedText, 2)
-	var lines []fmtedRows
-	var word string
-	var rowAlign string
-	var color TColor
-	var x string
-	//var x fmtedRows
-	for i := range char {
-		if char[i] == "0c" {
-			char[i] = ""
-			x = word
-			if x == "skdhgfasgfj" {
-				panic(1)
-			}
-			rLine := fmtedRows{rowAlign, word, color}
-			lines = append(lines, rLine)
-			//lines = lines[:len(lines)-1]
-			//word = x
-			//lines = append(lines, x)
-			//word = ""
-			//word = word[:len(word)-6]
-			//slice = slice[:len(slice)-1]
-			//x := lines[len(lines)-1]
-			//y := lines[len(lines)-2]
-			//lines = append(lines[:len(lines)-2], lines[len(lines)-1:]...)
-			//lines = append(lines[:len(lines)-2], lines[len(lines)-1:]...)
-
-			//x, a := a[0], a[1:]
-			//var x int
-        	/*x, s = s[0], s[1:]
-			sl[len(sl)-1]
-        	fmt.Println(x)*/
+func (w *TWindow) WPrint(allData ...interface{}) {
+	for _, data := range allData {
+		//color := GetFgColor()
+		var text string
+		switch data.(type) {
+		case int:
+			text = strconv.Itoa(data.(int))
+		case uint8:
+			text = ""
+		default:
+			text = data.(string)
 		}
-		//creating words
-		//word = x
-		if char[i] != "0d" {
-			if char[i] == "10" {
-				rowAlign = "left"
-			} else if char[i] == "11" {
-				rowAlign = "right"
-			} else if char[i] == "09" {
-				color = ColorDefault
-			} else if char[i] == "01" {
-				color = ColorGreen
-			} else if char[i] == "02" {
-				color = ColorRed
-			} else if char[i] == "03" {
-				color = ColorYellow
-				/*} else if char[i] == "20" {
-				word = word + " "
-				if 2*width-len(word) > 0 {
-					rLine := fmtedRows{rowAlign, word, color}
-					lines = append(lines, rLine)
-				}*/
-			} else {
-				if len(word) > 2*width-1 {
-					rLine := fmtedRows{rowAlign, word, color}
-					lines = append(lines, rLine)
-					word = ""
-				}
-				word = word + string(char[i])
-			}
-		} else {
-			rLine := fmtedRows{rowAlign, word, color}
-			lines = append(lines, rLine)
-			word = ""
-		}
-	}
-	rLine := fmtedRows{rowAlign, word, color}
-	lines = append(lines, rLine)
-	return lines
 
+		w.storedText += text
+	}
 }
 
-//WDraw -
+//WPrint - Кодирует входящий стринг в HEX и добавляет его к (w.containedText) не создает новую строку
+func (w *TWindow) WPrintLn(allData ...interface{}) {
+	for _, data := range allData {
+		//color := GetFgColor()
+		var text string
+		switch data.(type) {
+		case int:
+			text = strconv.Itoa(data.(int))
+		case uint8:
+			text = ""
+		default:
+			text = data.(string)
+		}
+		w.storedText += text //+ "{/N}"
+	}
+	w.storedText += "{/N}"
+}
+
 func (w *TWindow) WDraw() {
+	//col := ColorYellow
 	FillRect(w.posX, w.posY, w.width, w.height, ' ', GetFgColor(), GetBgColor())
 	//Border:
 	SetBounds(w.posX+w.width, w.posY+w.height-2*w.checkBorderVisibility())
@@ -228,56 +138,140 @@ func (w *TWindow) WDraw() {
 		}
 		DrawBorder(w.posX, w.posY, w.width, w.height, w.border)
 		if w.titleVisible {
+			if w.isActive {
+				SetFgColor(ColorDefault)
+			} else {
+				SetFgColor(ColorGreen)
+			}
 			Draw(w.posX+2, w.posY, w.width-4, "left", w.title)
+
 		}
 		SetFgColor(ColorDefault)
 	}
-	//Printable:
 	winX := w.posX + w.checkBorderVisibility()
 	winY := w.posY + w.checkBorderVisibility()
-	winHeight := w.height - 2*w.checkBorderVisibility()
-	topRow := w.GetScrollIndex()
+	//////
+	tSlice := strings.Split(w.storedText, "")
+	if w.scrollIndex > 0 {
+		w.scrollIndex = 0
+	}
 	//w.autoScroll = true
-	winWidth := w.width - 2*w.checkBorderVisibility()
-	row := w.cutter(winWidth)
-	w.storedRows = len(row)
-	if w.storedRows > winHeight {
-		w.vScrollBar = true
-	}
+	moveByX := 0
+	moveByY := w.scrollIndex
+	PrintText(1, 5, strconv.Itoa(w.scrollIndex))
+	tag := ""
+	readTag := false
+	line := 0
+	for x := range tSlice {
 
-	if w.autoScroll { //scrollIndex++ ?? Выводить так чтобы осталось 1-2 пустых строки
-		w.SetScrollIndex(w.storedRows - winHeight + 2)
-	}
-	if len(row) < winHeight {
-		w.SetScrollIndex(0)
-	}
-	if w.vScrollBar == true {
-		//w.DrawScrollBar()
-	}
+		if tSlice[x] == "{" {
+			readTag = true
+			continue
+		}
+		if tSlice[x] == "}" {
 
-	for i := 0; i < winHeight; i++ {
-		if topRow+i > len(row)-1 {
+			readTag = false
+			switch strings.ToUpper(tag) {
+			case "RED":
+				SetFgColor(ColorRed)
+			case "BLACK":
+				SetFgColor(ColorBlack)
+			case "BG:RED":
+				SetBgColor(ColorRed)
+			case "YELLOW":
+				SetFgColor(ColorYellow)
+			case "GREEN":
+				SetFgColor(ColorGreen)
+			case "DEFAULT":
+				SetFgColor(ColorDefault)
+			case "/N":
+				moveByY++
+				line++
+				moveByX = 0
+			}
+			tag = ""
+			continue
+		}
+		if readTag {
+			tag = tag + tSlice[x]
+			continue
+		}
+
+		if moveByX >= w.GetPrintableWidth() {
+			moveByY++
+			moveByX = 0
+			line++
+		}
+
+		if moveByY > w.GetPrintableHeight() {
 			break
 		}
-		decodedRow, _ := hex.DecodeString(row[topRow+i].text)
-		row[topRow+i].text = string(decodedRow)
-		fgCol = row[topRow+i].color
-		if i >= 0 && i < winHeight {
-			Draw(winX, winY, winWidth, row[topRow+i].align, row[topRow+i].text)
-		}
-		fgCol = ColorDefault
-		winY++
-		//w.putScrollMarker(topRow+i, len(row))
 
+		/*	PrintText(1, 6, "MOVEBYX =                         ")
+			PrintText(1, 7, "MOVEBYy =                         ")
+			PrintText(1, 8, "w.GetPrintableHeight() =          ")
+			PrintText(1, 9, "moveByY =                         ")
+			PrintText(1, 10, "x =                         ")
+			PrintText(1, 11, "Lines =                         ")
+			PrintText(1, 6, "MOVEBYX = "+strconv.Itoa(moveByX))
+			PrintText(1, 7, "Scroll = "+strconv.Itoa(w.scrollIndex))
+			PrintText(1, 8, "w.GetPrintableHeight() = "+strconv.Itoa(w.GetPrintableHeight()))
+			PrintText(1, 9, "moveByY = "+strconv.Itoa(moveByY))
+			PrintText(1, 10, "x = "+strconv.Itoa(x))
+			PrintText(1, 11, "Lines = "+strconv.Itoa(line+1))*/
+		if winY+moveByY < winY {
+			moveByX++
+			continue
+		}
+		if moveByY < 0 {
+			continue
+		}
+		Draw(winX+moveByX, winY+moveByY, w.GetPrintableWidth(), "left", tSlice[x])
+		moveByX++
 	}
-	if len(row) > w.GetPrintableHeight() {
-		w.putScrollMarker(topRow, len(row))
+	if w.scrollIndex <= 0-(line-w.GetPrintableHeight()+2) {
+		w.scrollIndex = 0 - (line - w.GetPrintableHeight() + 2)
+		//panic(2)
 	}
+	if w.autoScroll {
+		w.scrollIndex = 0 - (line - w.GetPrintableHeight() + 2)
+	}
+	if line > w.GetPrintableHeight() {
+		w.putScrollMarker(w.scrollIndex, line)
+	}
+	SetFgColor(ColorDefault)
+	SetBgColor(ColorBlack)
+}
+
+//WRead -
+func (w *TWindow) WRead() string {
+	//decodedRow, _ := hex.DecodeString(row[topRow+i].text)
+	text, _ := hex.DecodeString(w.containedText)
+	return string(text)
+}
+
+//WGetContent -
+func (w *TWindow) WGetContent() string {
+	return w.containedText
+}
+
+//WSetContent -
+func (w *TWindow) WSetContent(cont string) {
+	w.containedText = cont
+}
+
+//WClear - Сносит из HEX в (w.containedText)
+func (w *TWindow) WClear() {
+	w.containedText = ""
 }
 
 func (w *TWindow) putScrollMarker(marker, rowQty int) {
-	if marker <= 0 {
-		marker = 1
+	if marker >= 0 {
+		marker = -1
+	}
+
+	if marker < w.scrollIndex-w.GetPrintableHeight() {
+		marker = w.scrollIndex - w.GetPrintableHeight()
 	}
 	/*
 			http://stackoverflow.com/questions/1406546/calculating-scrollbar-position
@@ -294,24 +288,12 @@ func (w *TWindow) putScrollMarker(marker, rowQty int) {
 	scrollTrackSpace := float32(rowQty) - float32(w.GetPrintableHeight()) // (600 - 200) = 400
 	scrollThumbSpace := float32(w.GetPrintableHeight()) - thumbHeight     // (200 - 50) = 150
 	scrollJump := scrollThumbSpace / scrollTrackSpace                     //  (400 / 150 ) = 2.666666666666667
-	PrintText(w.posX+w.width-w.checkBorderVisibility(), int(float32(marker+w.GetPrintableHeight()-4)*scrollJump)+w.posY, "X")
-
-	//PrintText(w.posX+w.width-w.checkBorderVisibility(), int(float32(marker + w.GetPrintableHeight() - 2) * scrollJump) + w.posY, "X")
+	PrintText(w.posX+w.width-w.checkBorderVisibility(), int(float32((0-marker)+w.GetPrintableHeight()-1)*scrollJump)+w.posY, "X")
 }
 
 //DeleteWindow -
 func (w *TWindow) DeleteWindow() {
 
-}
-
-//GetOutputRange -
-func (w *TWindow) GetOutputRange() int {
-	return w.outputRange
-}
-
-//SetOutputRange  -
-func (w *TWindow) SetOutputRange(or int) {
-	w.outputRange = or
 }
 
 //GetPrintableHeight -
@@ -441,7 +423,7 @@ func NewWindow(posX, posY, width, height int, title, border string) IWindow {
 	window.titleVisible = true
 	window.border = border
 	window.borderVisible = true
-
+	//window.storedText = append(window.storedText, "")
 	WindowsMap.ByTitle[window.title] = window
 	return window
 }
@@ -467,4 +449,12 @@ func (wm *TWindowsMap) GetNames() []string {
 		names = append(names, n)
 	}
 	return names
+}
+
+func insert(s []string, at int, val string) []string {
+	// Move all elements of s up one slot
+	s = append(s[:at+1], s[at:]...)
+	// Insert the new element at the now free position
+	s[at] = val
+	return s
 }

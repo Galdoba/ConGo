@@ -222,21 +222,22 @@ func (ev *MouseEvent) GetRune() rune {
 var keyTranslateMap = map[int]string{
 	8:     "<BACKSPACE>",
 	9:     "<TAB>",
-	13:     "<ENTER>",
+	13:    "<ENTER>",
 	27:    "<esc>",
 	32:    "<space>",
 	65535: "<F1>",
 	65534: "<F2>",
 	65533: "<F3>",
+	65532: "<F4>",
+	65531: "<F5>",
 	65524: "<F12>",
 	65517: "<up>",
 	65516: "<down>",
 	65514: "<right>",
-	
 }
 
 var mouseTranslateMap = map[int]string{
-	
+
 	65512: "<LMB>",
 	65511: "<MMB>",
 	65510: "<RMB>",

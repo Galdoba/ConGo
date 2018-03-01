@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
-
 	"sort"
 
 	"github.com/Galdoba/ConGo/congo"
@@ -11,6 +9,8 @@ import (
 )
 
 var buf chan rune
+
+//var Selector int
 
 var (
 	total            string
@@ -29,7 +29,7 @@ var (
 	mouseColor       int
 	borderNames      []string
 	activeBorderName string
-	selector         int
+	Selector         int
 	curs             int
 	windowLayer      int
 	totalWindows     int
@@ -48,7 +48,7 @@ func initialize() {
 	})
 
 	congo.NewKeyboardAction("___", "<#65532>", "", func(ev *congo.KeyboardEvent) bool { //KeyboardEvent
-		selector = 0
+		Selector = 0
 
 		//borderName = congo.StylePool[selector].GetStyleName()
 		return true
@@ -88,7 +88,7 @@ func initialize() {
 		sort.Strings(windowList)
 		for i := range windowList {
 			if congo.WindowsMap.ByTitle[windowList[i]].InFocus() == true {
-				congo.WindowsMap.ByTitle[windowList[i]].WPrintLn("So reading up on Jammers for my Rigger/Decker hybrid (emphasis on the decker part, I was wondering how viable using an area jammer as Matrix defense is. ", congo.ColorDefault)
+				congo.WindowsMap.ByTitle[windowList[i]].WPrintLn("So reading up on Jammers for my Rigger/Decker hybrid (emphasis on the decker part, I was wondering how viable using an area jammer as Matrix defense is. ")
 			}
 		}
 		return true
@@ -123,10 +123,12 @@ func initialize() {
 		for i := range windowList {
 			if congo.WindowsMap.ByTitle[windowList[i]].InFocus() == true {
 				index := congo.WindowsMap.ByTitle[windowList[i]].GetScrollIndex()
-				congo.WindowsMap.ByTitle[windowList[i]].SetScrollIndex(utils.Min(index+1, congo.WindowsMap.ByTitle[windowList[i]].GetStoredRows()-congo.WindowsMap.ByTitle[windowList[i]].GetPrintableHeight()+2))
+				/*congo.WindowsMap.ByTitle[windowList[i]].SetScrollIndex(utils.Min(index+1, congo.WindowsMap.ByTitle[windowList[i]].GetStoredRows()-congo.WindowsMap.ByTitle[windowList[i]].GetPrintableHeight()+2))
 				if congo.WindowsMap.ByTitle[windowList[i]].GetStoredRows() < congo.WindowsMap.ByTitle[windowList[i]].GetPrintableHeight() {
 					congo.WindowsMap.ByTitle[windowList[i]].SetScrollIndex(0)
-				}
+
+				}*/
+				congo.WindowsMap.ByTitle[windowList[i]].SetScrollIndex(index - 1)
 				congo.WindowsMap.ByTitle[windowList[i]].WDraw()
 
 			}
@@ -141,9 +143,11 @@ func initialize() {
 		sort.Strings(windowList)
 		for i := range windowList {
 			if congo.WindowsMap.ByTitle[windowList[i]].InFocus() == true {
-				congo.WindowsMap.ByTitle[windowList[i]].SetAutoScroll(false)
+				//congo.WindowsMap.ByTitle[windowList[i]].SetAutoScroll(false)
 				index := congo.WindowsMap.ByTitle[windowList[i]].GetScrollIndex()
-				congo.WindowsMap.ByTitle[windowList[i]].SetScrollIndex(utils.Max(index-1, 0))
+				//congo.WindowsMap.ByTitle[windowList[i]].SetScrollIndex(utils.Max(index-1, 0))
+				congo.WindowsMap.ByTitle[windowList[i]].SetAutoScroll(false)
+				congo.WindowsMap.ByTitle[windowList[i]].SetScrollIndex(index + 1)
 				congo.WindowsMap.ByTitle[windowList[i]].WDraw()
 			}
 		}
@@ -164,18 +168,19 @@ func initialize() {
 		}
 		curs--
 		curs = utils.Max(curs, 0)
+
 		return true
 	})
 
 	congo.NewKeyboardAction("ActWin/Move_selector_down", "ActWin/<down>", "", func(ev *congo.KeyboardEvent) bool { //KeyboardEvent
-		selector++
-		//selector = utils.Min(selector, len(actions)-1)
+		Selector++
+		Selector = utils.Min(Selector, len(actions)-1)
 		return true
 	})
 
 	congo.NewKeyboardAction("ActWin/Move_selector_up", "ActWin/<up>", "", func(ev *congo.KeyboardEvent) bool {
-		selector--
-		selector = utils.Max(selector, 0)
+		Selector--
+		Selector = utils.Max(Selector, 0)
 		return true
 	})
 
@@ -206,16 +211,33 @@ func initialize() {
 	})
 	congo.InitWindowsMap()
 
-	congo.NewWindow(width/100*60, 0, width/100*40, height, "Window1", "Double Line")
-	congo.NewWindow(20, 12, width/2, 34, "Window2", "Double Line")
-	congo.WindowsMap.ByTitle["Window1"].WPrintLn("0123456780090155555LN", congo.ColorDefault)
-	congo.WindowsMap.ByTitle["Window1"].WPrintLn("0123456789000155555LN", congo.ColorDefault)
-	congo.WindowsMap.ByTitle["Window1"].WPrint("01234567890155555 --- !!", congo.ColorDefault)
-	congo.WindowsMap.ByTitle["Window1"].WPrintLn("So reading up on Jammers for my Rigger/Decker hybrid (emphasis on the decker part, I was wondering how viable using an area jammer as Matrix defense is. ", congo.ColorDefault)
-	congo.WindowsMap.ByTitle["Window1"].WPrint("newLine: Kill999999999999999999999999999sadfasdfasdfalasfasjkdhfkl33956", congo.ColorDefault)
-	congo.WindowsMap.ByTitle["Window1"].SetAutoScroll(true)
+	w1 := congo.NewWindow(width/100*60, 0, width/100*40, height, "Window1", "Double Line")
+	w2 := congo.NewWindow(20, 12, 40, 15, "Window2", "Double Line")
 
-	congo.WindowsMap.ByTitle["Window2"].WPrintLn("someText1someText1", congo.ColorDefault)
+	congo.NewWindow(30, 00, 40, 48, "Window3", "Double Line")
+	w1.SetFocus(true)
+	w2.SetFocus(true)
+	w2.SetAutoScroll(true)
+	congo.WindowsMap.ByTitle["Window3"].SetAutoScroll(true)
+	for i := 0; i < 150; i++ {
+		congo.WindowsMap.ByTitle["Window3"].WPrintLn(12345, "{RED}", 67890, "{DEFAULT}")
+		/*congo.WindowsMap.ByTitle["Window3"].WPrint2("{RED}Row1_Word1VERY_LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONG")
+		congo.WindowsMap.ByTitle["Window3"].WPrint2("{YELLOW}Row2_Word1", "{RED}NEws{BLACK}{BG:RED}tring")
+		congo.WindowsMap.ByTitle["Window3"].WPrintLn2("R{BLACK}ow2_{red}Wor{green}d2")
+		congo.WindowsMap.ByTitle["Window3"].WPrint2("Row3_Word1")
+		congo.WindowsMap.ByTitle["Window3"].WPrint2("Row3_Word2{/N}")
+		congo.WindowsMap.ByTitle["Window3"].WPrint2("Row3_Word3")
+		congo.WindowsMap.ByTitle["Window3"].WPrint2(999)
+		congo.WindowsMap.ByTitle["Window3"].WPrint2("VERY_LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONG STRING")*/
+		draw()
+	}
+
+	//congo.WindowsMap.ByTitle["Window1"].SetAutoScroll(true)
+
+	//congo.WindowsMap.ByTitle["Window2"].WPrintLn("someText1", congo.ColorDefault)
+	//congo.WindowsMap.ByTitle["Window2"].WPrintLn("qqqqqqqqqqqqqqqq1164654e", congo.ColorYellow)
+	//congo.WindowsMap.ByTitle["Window2"].WPrintLn("3333333334465464646464646464444444444444444444646464644444444444444444444444444444444", congo.ColorRed)
+	//congo.WindowsMap.ByTitle["Window2"].WPrintLn("someText1someText1", congo.ColorDefault)
 	//congo.WindowsMap.WApply()
 	congo.ActionMap.Apply()
 }
@@ -227,14 +249,22 @@ var w5Test string
 func draw() {
 
 	congo.ClearScreen(' ', congo.GetFgColor(), congo.GetBgColor())
-	congo.PrintText(1, 1, fmt.Sprintf("%v-%T-%s ", info, info, info))
-	congo.PrintText(1, 3, congo.ActionMap.GetState())
-	t := time.Now()
-	congo.WindowsMap.ByTitle["Window1"].WPrintLn(fmt.Sprintf("%v    -%v ", info, t), congo.ColorDefault)
-	congo.WindowsMap.ByTitle["Window1"].WDraw()
-	congo.WindowsMap.ByTitle["Window2"].WDraw()
+	//congo.PrintText(1, 1, fmt.Sprintf("%v-%T-%s ", info, info, info))
+	//congo.PrintText(1, 3, congo.ActionMap.GetState())
+	//congo.PrintText(5, 0, strconv.Itoa(Selector))
+	//t := time.Now()
+	//congo.WindowsMap.ByTitle["Window2"].WPrintLn("-", congo.ColorDefault)
 
+	//congo.WindowsMap.ByTitle["Window3"].WPrint(fmt.Sprintf("%v", info), congo.ColorDefault)
+
+	//	congo.WindowsMap.ByTitle["Window1"].WDraw()
+	//congo.WindowsMap.ByTitle["Window2"].WDraw()
+	congo.WindowsMap.ByTitle["Window3"].WDraw()
+	//congo.WindowsMap.ByTitle["Window4"].WDraw2()
+	//congo.WindowsMap.ByTitle["Window2"].WPrint(fmt.Sprintf("%v", info), congo.ColorDefault)
+	//congo.WindowsMap.ByTitle["Window2"].WPrint(fmt.Sprintf("%v", info), congo.ColorDefault)
 	congo.Flush()
+
 }
 
 func main() {
@@ -255,7 +285,7 @@ func main() {
 		ev := kbd.ReadEvent()
 		info = ev
 		congo.HandleEvent(ev)
-
+		congo.WindowsMap.ByTitle["Window3"].WPrint(fmt.Sprintf("%v", info))
 	}
 
 	//defer congo.Close()

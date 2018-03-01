@@ -177,7 +177,7 @@ func Draw(x, y, w int, align string, input string) {
 	_, maxY := GetBounds()
 
 	////////////////модуль переноса строки - возможно перенести в отдельную функцию
-	if align == "LBLeft" {
+	if align == "left" {
 		outRows := SplitSubN(input, w)
 		for i := range outRows {
 			if y <= maxY {
