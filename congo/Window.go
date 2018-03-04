@@ -2,7 +2,6 @@ package congo
 
 //	"strings"
 import (
-	"encoding/hex"
 	"strconv"
 	"strings"
 )
@@ -101,6 +100,8 @@ func (w *TWindow) WPrint(allData ...interface{}) {
 			text = strconv.Itoa(data.(int))
 		case uint8:
 			text = ""
+		case TColor:
+			continue
 		default:
 			text = data.(string)
 		}
@@ -119,6 +120,8 @@ func (w *TWindow) WPrintLn(allData ...interface{}) {
 			text = strconv.Itoa(data.(int))
 		case uint8:
 			text = ""
+		case TColor:
+			continue
 		default:
 			text = data.(string)
 		}
@@ -158,7 +161,7 @@ func (w *TWindow) WDraw() {
 	//w.autoScroll = true
 	moveByX := 0
 	moveByY := w.scrollIndex
-	PrintText(1, 5, strconv.Itoa(w.scrollIndex))
+	//PrintText(1, 5, strconv.Itoa(w.scrollIndex))
 	tag := ""
 	readTag := false
 	line := 0
@@ -172,18 +175,47 @@ func (w *TWindow) WDraw() {
 
 			readTag = false
 			switch strings.ToUpper(tag) {
-			case "RED":
-				SetFgColor(ColorRed)
 			case "BLACK":
 				SetFgColor(ColorBlack)
-			case "BG:RED":
-				SetBgColor(ColorRed)
-			case "YELLOW":
-				SetFgColor(ColorYellow)
-			case "GREEN":
-				SetFgColor(ColorGreen)
+			case "BLUE":
+				SetFgColor(ColorBlue)
+			case "CYAN":
+				SetFgColor(ColorCyan)
+			case "DARKGRAY":
+				SetFgColor(ColorDarkGray)
 			case "DEFAULT":
 				SetFgColor(ColorDefault)
+			case "GREEN":
+				SetFgColor(ColorGreen)
+			case "MAGENTA":
+				SetFgColor(ColorMagenta)
+			case "RED":
+				SetFgColor(ColorRed)
+			case "WHITE":
+				SetFgColor(ColorWhite)
+			case "YELLOW":
+				SetFgColor(ColorYellow)
+			case "BG:BLACK":
+				SetBgColor(ColorBlack)
+			case "BG:BLUE":
+				SetBgColor(ColorBlue)
+			case "BG:CYAN":
+				SetBgColor(ColorCyan)
+			case "BG:DARKGRAY":
+				SetBgColor(ColorDarkGray)
+			case "BG:DEFAULT":
+				SetBgColor(ColorDefault)
+			case "BG:GREEN":
+				SetBgColor(ColorGreen)
+			case "BG:MAGENTA":
+				SetBgColor(ColorMagenta)
+			case "BG:RED":
+				SetBgColor(ColorRed)
+			case "BG:WHITE":
+				SetBgColor(ColorWhite)
+			case "BG:YELLOW":
+				SetBgColor(ColorYellow)
+
 			case "/N":
 				moveByY++
 				line++
@@ -245,24 +277,23 @@ func (w *TWindow) WDraw() {
 
 //WRead -
 func (w *TWindow) WRead() string {
-	//decodedRow, _ := hex.DecodeString(row[topRow+i].text)
-	text, _ := hex.DecodeString(w.containedText)
-	return string(text)
+
+	return w.storedText
 }
 
 //WGetContent -
 func (w *TWindow) WGetContent() string {
-	return w.containedText
+	return w.storedText
 }
 
 //WSetContent -
 func (w *TWindow) WSetContent(cont string) {
-	w.containedText = cont
+	w.storedText = cont
 }
 
 //WClear - Сносит из HEX в (w.containedText)
 func (w *TWindow) WClear() {
-	w.containedText = ""
+	w.storedText = ""
 }
 
 func (w *TWindow) putScrollMarker(marker, rowQty int) {
